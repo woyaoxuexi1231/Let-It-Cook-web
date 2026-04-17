@@ -1,55 +1,24 @@
 <template>
-  <el-container class="admin-container">
-    <el-aside width="220px">
-      <div class="logo">
-        <el-icon :size="24" color="#fff"><Dish /></el-icon>
-        <span>随缘吃饭</span>
-      </div>
-      <el-menu
-        :default-active="activeMenu"
-        class="admin-menu"
-        router
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409eff"
-        :collapse-transition="false"
-      >
-        <el-menu-item index="/dish">
-          <el-icon><Menu /></el-icon>
-          <span>菜谱管理</span>
-        </el-menu-item>
-      </el-menu>
-    </el-aside>
-    <el-container>
-      <el-header class="admin-header">
-        <div class="header-left">
-          <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item>菜谱管理</el-breadcrumb-item>
-          </el-breadcrumb>
-        </div>
-      </el-header>
-      <el-main>
-        <router-view />
-      </el-main>
-    </el-container>
-  </el-container>
+  <div id="app">
+    <AdminLayout v-if="!isLandingPage">
+      <router-view />
+    </AdminLayout>
+    <router-view v-else />
+  </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Dish, Menu } from '@element-plus/icons-vue'
+import AdminLayout from '@/components/AdminLayout.vue'
 
 const route = useRoute()
-const activeMenu = ref('/dish')
-
-watch(() => route.path, (newPath) => {
-  activeMenu.value = newPath
-}, { immediate: true })
+const isLandingPage = computed(() => route.path === '/landing')
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -57,71 +26,37 @@ watch(() => route.path, (newPath) => {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-.admin-container {
-  height: 100vh;
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
+  --bg-card: #ffffff;
+  --border-color: #e5e5e5;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --text-muted: #a0a0a0;
 }
 
-.el-aside {
-  background: #304156;
-  box-shadow: 2px 0 6px rgba(0, 21, 41, 0.35);
-  transition: width 0.3s;
+:root.dark-theme {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #1a1a1a;
+  --border-color: #333333;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a0a0a0;
+  --text-muted: #666666;
 }
 
-.logo {
-  height: 60px;
-  line-height: 60px;
-  text-align: center;
-  color: #fff;
-  font-size: 18px;
-  font-weight: bold;
-  background: #2b3a4a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.admin-menu {
-  border: none;
-  background: #304156;
-}
-
-.admin-menu .el-menu-item {
-  height: 50px;
-  line-height: 50px;
-  margin: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.3s;
-}
-
-.admin-menu .el-menu-item:hover {
-  background: #263445 !important;
-  color: #fff !important;
-}
-
-.admin-menu .el-menu-item.is-active {
-  background: #409eff !important;
-  color: #fff !important;
-}
-
-.admin-header {
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-}
-
-.el-main {
-  background: #f0f2f5;
-  padding: 20px;
+#app {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
 }
 </style>

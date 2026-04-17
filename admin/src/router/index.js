@@ -1,20 +1,22 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import DishManage from "@/views/DishManage.vue";
+import UXProMaxLanding from "@/views/UXProMaxLanding.vue";
 
 const routes = [
   {
     path: '/',
-    redirect: '/dish'
-  },
-  {
-    path: '/dish',
     name: 'DishManage',
     component: DishManage
+  },
+  {
+    path: '/landing',
+    name: 'Landing',
+    component: UXProMaxLanding
   }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 })
 
