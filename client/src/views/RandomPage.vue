@@ -61,6 +61,7 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { getFileUrl } from '@/utils/fileUrl'
+import { getProxyTarget } from '@/utils/proxyUrl'
 
 const router = useRouter()
 const containerRef = ref(null)
@@ -75,7 +76,11 @@ let randomInterval = null
 const fetchDishes = async () => {
   try {
     const url = '/api/let-it-cook/api/client/dishes/list'
-    console.log('🚀 请求地址:', url)
+    const fullUrl = window.location.origin + url
+    const proxyTarget = getProxyTarget()
+    const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
+    console.log('🚀 前端访问:', fullUrl)
+    console.log('🎯 实际转发到:', realUrl)
     const response = await axios.post(url)
     dishes.value = response.data.data || []
   } catch (error) {
@@ -93,7 +98,11 @@ const fetchDishes = async () => {
 const fetchLastResult = async () => {
   try {
     const url = '/api/let-it-cook/api/client/dishes/last-result'
-    console.log('🚀 查询上次结果:', url)
+    const fullUrl = window.location.origin + url
+    const proxyTarget = getProxyTarget()
+    const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
+    console.log('🚀 前端访问:', fullUrl)
+    console.log('🎯 实际转发到:', realUrl)
     const response = await axios.post(url)
     selectedDishes.value = response.data.data || []
   } catch (error) {
@@ -104,7 +113,11 @@ const fetchLastResult = async () => {
 const fetchRandomDishes = async (count = 3) => {
   try {
     const url = '/api/let-it-cook/api/client/dishes/random'
-    console.log('🚀 请求地址:', url)
+    const fullUrl = window.location.origin + url
+    const proxyTarget = getProxyTarget()
+    const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
+    console.log('🚀 前端访问:', fullUrl)
+    console.log('🎯 实际转发到:', realUrl)
     const response = await axios.post(url, { count })
     selectedDishes.value = response.data.data || []
   } catch (error) {

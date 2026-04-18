@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getProxyTarget } from '@/utils/proxyUrl'
 
 const API_BASE_URL = '/api/let-it-cook/api'
 
@@ -12,8 +13,11 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   config => {
-    const fullUrl = config.baseURL + config.url
-    console.log('🚀 请求地址:', fullUrl)
+    const fullUrl = window.location.origin + config.baseURL + config.url
+    const proxyTarget = getProxyTarget()
+    const realUrl = proxyTarget ? proxyTarget + (config.baseURL + config.url).replace(/^\/api/, '') : fullUrl
+    console.log('🚀 前端访问:', fullUrl)
+    console.log('🎯 实际转发到:', realUrl)
     return config
   },
   error => {
@@ -72,7 +76,11 @@ export const uploadAPI = {
     const formData = new FormData()
     formData.append('file', file)
     const url = '/api/minio/upload'
-    console.log('🚀 请求地址:', url)
+    const fullUrl = window.location.origin + url
+    const proxyTarget = getProxyTarget()
+    const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
+    console.log('🚀 前端访问:', fullUrl)
+    console.log('🎯 实际转发到:', realUrl)
     return axios.post(url, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'

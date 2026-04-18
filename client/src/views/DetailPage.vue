@@ -63,10 +63,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { getFileUrl } from '@/utils/fileUrl'
+import { getProxyTarget } from '@/utils/proxyUrl'
 
 const router = useRouter()
 const route = useRoute()
@@ -77,7 +78,11 @@ const dishDetail = ref(null)
 const fetchDishDetail = async (id) => {
   try {
     const url = '/api/let-it-cook/api/client/dishes/detail'
-    console.log('🚀 请求地址:', url)
+    const fullUrl = window.location.origin + url
+    const proxyTarget = getProxyTarget()
+    const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
+    console.log('🚀 前端访问:', fullUrl)
+    console.log('🎯 实际转发到:', realUrl)
     const response = await axios.post(url, { id })
     dishDetail.value = response.data.data
   } catch (error) {
@@ -90,6 +95,13 @@ const goBack = () => {
 }
 
 onMounted(async () => {
+  const dishId = route.params.id
+  if (dishId) {
+    await fetchDishDetail(dishId)
+  }
+})
+
+onActivated(async () => {
   const dishId = route.params.id
   if (dishId) {
     await fetchDishDetail(dishId)
