@@ -90,6 +90,17 @@ const fetchDishes = async () => {
   }
 }
 
+const fetchLastResult = async () => {
+  try {
+    const url = '/api/let-it-cook/api/client/dishes/last-result'
+    console.log('🚀 查询上次结果:', url)
+    const response = await axios.post(url)
+    selectedDishes.value = response.data.data || []
+  } catch (error) {
+    console.error('查询上次结果失败:', error)
+  }
+}
+
 const fetchRandomDishes = async (count = 3) => {
   try {
     const url = '/api/let-it-cook/api/client/dishes/random'
@@ -157,6 +168,7 @@ const resetGlow = (event) => {
 
 onMounted(async () => {
   await fetchDishes()
+  await fetchLastResult()
 })
 
 onUnmounted(() => {
