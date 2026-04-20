@@ -73,6 +73,25 @@ const selectedDishes = ref([])
 const dishes = ref([])
 let randomInterval = null
 
+// 获取客户端真实IP
+const getClientIp = async () => {
+  try {
+    // 使用第三方IP查询服务
+    const response = await axios.get('https://api.ipify.org?format=json')
+    return response.data.ip
+  } catch (error) {
+    console.error('获取IP失败:', error)
+    // 备用方案
+    try {
+      const response = await axios.get('https://ipinfo.io/json')
+      return response.data.ip
+    } catch (err) {
+      console.error('备用IP获取失败:', err)
+      return 'unknown'
+    }
+  }
+}
+
 const fetchDishes = async () => {
   try {
     const url = '/api/let-it-cook/api/client/dishes/list'
@@ -97,13 +116,15 @@ const fetchDishes = async () => {
 
 const fetchLastResult = async () => {
   try {
+    const clientIp = await getClientIp()
     const url = '/api/let-it-cook/api/client/dishes/last-result'
     const fullUrl = window.location.origin + url
     const proxyTarget = getProxyTarget()
     const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
     console.log('🚀 前端访问:', fullUrl)
     console.log('🎯 实际转发到:', realUrl)
-    const response = await axios.post(url)
+    console.log('📡 客户端IP:', clientIp)
+    const response = await axios.post(url, { clientIp })
     selectedDishes.value = response.data.data || []
   } catch (error) {
     console.error('查询上次结果失败:', error)
@@ -112,13 +133,15 @@ const fetchLastResult = async () => {
 
 const fetchRandomDishes = async (count = 3) => {
   try {
+    const clientIp = await getClientIp()
     const url = '/api/let-it-cook/api/client/dishes/random'
     const fullUrl = window.location.origin + url
     const proxyTarget = getProxyTarget()
     const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
     console.log('🚀 前端访问:', fullUrl)
     console.log('🎯 实际转发到:', realUrl)
-    const response = await axios.post(url, { count })
+    console.log('📡 客户端IP:', clientIp)
+    const response = await axios.post(url, { count, clientIp })
     selectedDishes.value = response.data.data || []
   } catch (error) {
     console.error('获取随机菜谱失败:', error)
