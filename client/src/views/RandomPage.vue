@@ -3,32 +3,32 @@
     <div class="bg-gradient"></div>
     <div class="bg-circle circle-1"></div>
     <div class="bg-circle circle-2"></div>
-    
+
     <main class="main-content">
       <div class="display-area" ref="displayRef">
         <div v-if="isRandomizing" class="randoming">
           <div class="dish-text" :key="currentDish">{{ currentDish }}</div>
         </div>
-        
+
         <div v-else class="result-area">
           <div v-if="selectedDishes.length > 0" class="dishes-list">
-            <div 
-              v-for="(dish, index) in selectedDishes" 
-              :key="dish.id"
-              class="dish-item"
-              :style="{ 
+            <div
+                v-for="(dish, index) in selectedDishes"
+                :key="dish.id"
+                class="dish-item"
+                :style="{
                 animationDelay: `${index * 0.1}s`,
                 '--delay': `${index * 0.1}s`
               }"
-              @mousemove="handleMouseMove($event)"
-              @mouseleave="resetGlow($event)"
-              @click="goToDetail(dish.id)"
+                @mousemove="handleMouseMove($event)"
+                @mouseleave="resetGlow($event)"
+                @click="goToDetail(dish.id)"
             >
               <span class="dish-number">{{ index + 1 }}</span>
               <div class="dish-info">
                 <span class="dish-name">{{ dish.name }}</span>
                 <div class="dish-image" v-if="dish.image">
-                  <img :src="getFileUrl(dish.image)" :alt="dish.name" />
+                  <img :src="getFileUrl(dish.image)" :alt="dish.name"/>
                 </div>
               </div>
               <div class="glow-effect"></div>
@@ -41,13 +41,13 @@
           </div>
         </div>
       </div>
-      
-      <button 
-        class="action-button"
-        :class="{ 'active': isRandomizing }"
-        @click="toggleRandom"
-        @mousemove="handleMouseMove($event)"
-        @mouseleave="resetGlow($event)"
+
+      <button
+          class="action-button"
+          :class="{ 'active': isRandomizing }"
+          @click="toggleRandom"
+          @mousemove="handleMouseMove($event)"
+          @mouseleave="resetGlow($event)"
       >
         <span class="button-inner">{{ isRandomizing ? '停止' : '开始' }}</span>
         <div class="button-glow"></div>
@@ -57,11 +57,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import {ref, onMounted, onUnmounted, nextTick} from 'vue'
+import {useRouter} from 'vue-router'
 import axios from 'axios'
-import { getFileUrl } from '@/utils/fileUrl'
-import { getProxyTarget } from '@/utils/proxyUrl'
+import {getFileUrl} from '@/utils/fileUrl'
+import {getProxyTarget} from '@/utils/proxyUrl'
 
 const router = useRouter()
 const containerRef = ref(null)
@@ -75,21 +75,16 @@ let randomInterval = null
 
 // 获取客户端真实IP
 const getClientIp = async () => {
+
+  // 备用方案
   try {
-    // 使用第三方IP查询服务
-    const response = await axios.get('https://api.ipify.org?format=json')
+    const response = await axios.get('https://ipinfo.io/json')
     return response.data.ip
-  } catch (error) {
-    console.error('获取IP失败:', error)
-    // 备用方案
-    try {
-      const response = await axios.get('https://ipinfo.io/json')
-      return response.data.ip
-    } catch (err) {
-      console.error('备用IP获取失败:', err)
-      return 'unknown'
-    }
+  } catch (err) {
+    console.error('备用IP获取失败:', err)
+    return 'unknown'
   }
+
 }
 
 const fetchDishes = async () => {
@@ -105,11 +100,11 @@ const fetchDishes = async () => {
   } catch (error) {
     console.error('获取菜谱失败:', error)
     dishes.value = [
-      { id: 1, name: '宫保鸡丁', image: 'https://example.com/gongbaojiding.jpg' },
-      { id: 2, name: '鱼香肉丝', image: 'https://example.com/yuxiangrousi.jpg' },
-      { id: 3, name: '糖醋排骨', image: 'https://example.com/tangcupaigu.jpg' },
-      { id: 4, name: '红烧肉', image: 'https://example.com/hongshaorou.jpg' },
-      { id: 5, name: '麻婆豆腐', image: 'https://example.com/mapodoufu.jpg' }
+      {id: 1, name: '宫保鸡丁', image: 'https://example.com/gongbaojiding.jpg'},
+      {id: 2, name: '鱼香肉丝', image: 'https://example.com/yuxiangrousi.jpg'},
+      {id: 3, name: '糖醋排骨', image: 'https://example.com/tangcupaigu.jpg'},
+      {id: 4, name: '红烧肉', image: 'https://example.com/hongshaorou.jpg'},
+      {id: 5, name: '麻婆豆腐', image: 'https://example.com/mapodoufu.jpg'}
     ]
   }
 }
@@ -124,7 +119,7 @@ const fetchLastResult = async () => {
     console.log('🚀 前端访问:', fullUrl)
     console.log('🎯 实际转发到:', realUrl)
     console.log('📡 客户端IP:', clientIp)
-    const response = await axios.post(url, { clientIp })
+    const response = await axios.post(url, {clientIp})
     selectedDishes.value = response.data.data || []
   } catch (error) {
     console.error('查询上次结果失败:', error)
@@ -141,7 +136,7 @@ const fetchRandomDishes = async (count = 3) => {
     console.log('🚀 前端访问:', fullUrl)
     console.log('🎯 实际转发到:', realUrl)
     console.log('📡 客户端IP:', clientIp)
-    const response = await axios.post(url, { count, clientIp })
+    const response = await axios.post(url, {count, clientIp})
     selectedDishes.value = response.data.data || []
   } catch (error) {
     console.error('获取随机菜谱失败:', error)
@@ -184,12 +179,12 @@ const handleMouseMove = (event) => {
   const rect = element.getBoundingClientRect()
   const x = ((event.clientX - rect.left) / rect.width) * 100
   const y = ((event.clientY - rect.top) / rect.height) * 100
-  
+
   const glowElement = element.querySelector('.glow-effect, .button-glow')
   if (glowElement) {
     glowElement.style.background = `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
   }
-  
+
   element.style.transform = 'scale(1.02)'
 }
 
@@ -226,10 +221,9 @@ onUnmounted(() => {
 .bg-gradient {
   position: absolute;
   inset: 0;
-  background: 
-    radial-gradient(ellipse at 20% 20%, rgba(60,60,60,0.4) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, rgba(40,40,40,0.3) 0%, transparent 50%),
-    linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+  background: radial-gradient(ellipse at 20% 20%, rgba(60, 60, 60, 0.4) 0%, transparent 50%),
+  radial-gradient(ellipse at 80% 80%, rgba(40, 40, 40, 0.3) 0%, transparent 50%),
+  linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
 }
 
 .bg-circle {
@@ -303,8 +297,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 20px;
   padding: 24px 30px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -316,15 +310,15 @@ onUnmounted(() => {
 }
 
 .dish-item:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
   transform: translateX(8px);
 }
 
 .dish-number {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255, 255, 255, 0.3);
   width: 24px;
 }
 
@@ -358,7 +352,7 @@ onUnmounted(() => {
 .glow-effect {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 50%);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
   transition: all 0.3s ease;
   pointer-events: none;
 }
@@ -373,12 +367,12 @@ onUnmounted(() => {
 .tip-line {
   width: 60px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
 .tip-text {
   font-size: 14px;
-  color: rgba(255,255,255,0.25);
+  color: rgba(255, 255, 255, 0.25);
   letter-spacing: 0.2em;
 }
 
@@ -389,8 +383,8 @@ onUnmounted(() => {
   font-weight: 300;
   letter-spacing: 0.4em;
   color: #fff;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   cursor: pointer;
   overflow: hidden;
@@ -398,13 +392,13 @@ onUnmounted(() => {
 }
 
 .action-button:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .action-button.active {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
   animation: textPulse 1s ease-in-out infinite;
 }
 
@@ -416,7 +410,7 @@ onUnmounted(() => {
 .button-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 50%);
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
   transition: all 0.3s ease;
   pointer-events: none;
 }
@@ -534,7 +528,11 @@ onUnmounted(() => {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 </style>
