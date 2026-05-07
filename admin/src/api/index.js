@@ -34,8 +34,8 @@ apiClient.interceptors.response.use(
 )
 
 export const dishAPI = {
-  getDishes(pageNum = 1, pageSize = 10) {
-    return apiClient.post('/dishes/list', { pageNum, pageSize })
+  getDishes(pageNum = 1, pageSize = 10, keyword = '') {
+    return apiClient.post('/dishes/list', { pageNum, pageSize, keyword })
   },
 
   addDish(data) {

@@ -22,7 +22,7 @@
     </div>
 
     <div class="table-container">
-      <table class="data-table" v-if="filteredDishList.length > 0">
+      <table class="data-table" v-if="dishList.length > 0">
         <thead>
           <tr>
             <th class="col-recipe">Recipe</th>
@@ -32,7 +32,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="dish in filteredDishList" :key="dish.id">
+          <tr v-for="dish in dishList" :key="dish.id">
             <td class="col-recipe">
               <div class="dish-cell">
                 <div class="dish-image-wrapper" @click="previewImage(getFileUrl(dish.image))">
@@ -77,6 +77,29 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- 分页组件 -->
+      <div class="pagination" v-if="total > pageSize">
+        <button 
+          class="page-btn" 
+          :disabled="currentPage === 1"
+          @click="handlePageChange(currentPage - 1)"
+        >
+          ‹ Prev
+        </button>
+        
+        <span class="page-info">
+          Page {{ currentPage }} / {{ Math.ceil(total / pageSize) }} (Total: {{ total }})
+        </span>
+        
+        <button 
+          class="page-btn" 
+          :disabled="currentPage >= Math.ceil(total / pageSize)"
+          @click="handlePageChange(currentPage + 1)"
+        >
+          Next ›
+        </button>
+      </div>
 
       <div v-else-if="!searchKeyword" class="empty-state">
         <span class="empty-icon">📋</span>
@@ -341,10 +364,14 @@ import { dishAPI, uploadAPI } from '@/api/index'
 import { getFileUrl } from '@/utils/fileUrl'
 
 const dishList = ref([])
-const filteredDishList = ref([])
 const searchKeyword = ref('')
 const currentDish = ref(null)
 const currentTutorials = ref([])
+
+// 分页相关
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 const dialogVisible = ref(false)
 const tutorialDialogVisible = ref(false)
@@ -447,10 +474,10 @@ const closeConfirm = () => {
 const fetchDishes = async () => {
   loading.value = true
   try {
-    const result = await dishAPI.getDishes(1, 100)
+    const result = await dishAPI.getDishes(currentPage.value, pageSize.value, searchKeyword.value)
     if (result.data && result.data.records) {
       dishList.value = result.data.records
-      filteredDishList.value = [...dishList.value]
+      total.value = result.data.total || 0
     }
   } catch (error) {
     console.error('Failed to fetch recipes', error)
@@ -460,25 +487,23 @@ const fetchDishes = async () => {
   }
 }
 
-// 搜索功能
-const handleSearch = () => {
-  if (!searchKeyword.value.trim()) {
-    filteredDishList.value = [...dishList.value]
-  } else {
-    const keyword = searchKeyword.value.toLowerCase()
-    filteredDishList.value = dishList.value.filter(dish => 
-      dish.name.toLowerCase().includes(keyword)
-    )
-  }
+// 搜索功能 - 调用后端接口
+const handleSearch = async () => {
+  currentPage.value = 1 // 搜索时重置到第一页
+  await fetchDishes()
+}
+
+// 切换页码
+const handlePageChange = async (page) => {
+  currentPage.value = page
+  await fetchDishes()
+  // 滚动到顶部
+  document.querySelector('.table-container')?.scrollIntoView({ behavior: 'smooth' })
 }
 
 // 刷新数据
 const refreshData = async () => {
   await fetchDishes()
-  // 保持当前搜索状态
-  if (searchKeyword.value.trim()) {
-    handleSearch()
-  }
 }
 
 const fetchTutorials = async (dishId) => {
@@ -1117,6 +1142,46 @@ onUnmounted(() => {
   font-size: 16px;
   color: var(--text-secondary);
   margin-bottom: 24px;
+}
+
+/* 分页组件 */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+}
+
+.page-btn {
+  padding: 8px 16px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  border-color: var(--text-primary);
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .modal-overlay {
