@@ -50,7 +50,7 @@
       </div>
     </main>
 
-    <div v-if="!isRandomizing" class="empty-tip">
+    <div v-if="!isRandomizing && selectedDishes.length === 0" class="empty-tip">
       <span class="tip-line"></span>
       <span class="tip-text">点击按钮开始</span>
       <span class="tip-line"></span>
