@@ -36,6 +36,16 @@
               </div>
               <div class="glow-effect"></div>
             </div>
+            <div class="ingredients-section" v-if="allIngredients.length > 0">
+              <h3 class="ingredients-title">所需食材</h3>
+              <div class="ingredients-list">
+                <span
+                    v-for="(ingredient, idx) in allIngredients"
+                    :key="idx"
+                    class="ingredient-tag"
+                >{{ ingredient }}</span>
+              </div>
+            </div>
           </div>
           <div v-else class="empty-tip">
             <span class="tip-line"></span>
@@ -63,7 +73,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onUnmounted, nextTick} from 'vue'
+import {ref, computed, onMounted, onUnmounted, nextTick} from 'vue'
 import {useRouter} from 'vue-router'
 import axios from 'axios'
 import {getFileUrl} from '@/utils/fileUrl'
@@ -78,6 +88,17 @@ const currentDish = ref('')
 const selectedDishes = ref([])
 const dishes = ref([])
 let randomInterval = null
+
+const allIngredients = computed(() => {
+  const ingredientsSet = new Set()
+  selectedDishes.value.forEach(dish => {
+    if (dish.ingredients) {
+      const parts = dish.ingredients.split(/[,，;；]/).map(s => s.trim()).filter(s => s)
+      parts.forEach(part => ingredientsSet.add(part))
+    }
+  })
+  return Array.from(ingredientsSet)
+})
 
 // 获取客户端真实IP
 const getClientIp = async () => {
@@ -401,6 +422,41 @@ onUnmounted(() => {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.25);
   letter-spacing: 0.2em;
+}
+
+.ingredients-section {
+  margin-top: 30px;
+  padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  animation: dishSlideIn 0.5s ease-out forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+.ingredients-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 16px 0;
+  letter-spacing: 0.15em;
+}
+
+.ingredients-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ingredient-tag {
+  padding: 8px 16px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  letter-spacing: 0.05em;
 }
 
 .action-button {

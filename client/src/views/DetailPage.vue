@@ -18,6 +18,28 @@
             <img :src="getFileUrl(dishDetail.image)" :alt="dishDetail.name" />
           </div>
 
+          <div class="dish-meta" v-if="dishDetail.cuisine || dishDetail.cookingTime">
+            <span class="meta-tag" v-if="dishDetail.cuisine">
+              <span class="meta-label">菜系</span>
+              <span class="meta-value">{{ dishDetail.cuisine }}</span>
+            </span>
+            <span class="meta-tag" v-if="dishDetail.cookingTime">
+              <span class="meta-label">时长</span>
+              <span class="meta-value">{{ dishDetail.cookingTime }}</span>
+            </span>
+          </div>
+
+          <div class="ingredients-section" v-if="parsedIngredients.length > 0">
+            <h3 class="section-title">食材</h3>
+            <div class="ingredients-list">
+              <span
+                v-for="(ingredient, index) in parsedIngredients"
+                :key="index"
+                class="ingredient-tag"
+              >{{ ingredient }}</span>
+            </div>
+          </div>
+
           <div class="tutorials-section">
             <h3 class="section-title">教程</h3>
             <div v-if="dishDetail.tutorials && dishDetail.tutorials.length > 0" class="tutorials-list">
@@ -63,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onActivated } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { getFileUrl } from '@/utils/fileUrl'
@@ -74,6 +96,14 @@ const route = useRoute()
 const containerRef = ref(null)
 
 const dishDetail = ref(null)
+
+const parsedIngredients = computed(() => {
+  if (!dishDetail.value || !dishDetail.value.ingredients) return []
+  return dishDetail.value.ingredients
+    .split(/[,，;；]/)
+    .map(s => s.trim())
+    .filter(s => s)
+})
 
 const fetchDishDetail = async (id) => {
   try {
@@ -315,6 +345,53 @@ onActivated(async () => {
   border-radius: 12px;
 }
 
+.dish-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.meta-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+}
+
+.meta-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+
+.meta-value {
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+}
+
+.ingredients-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.ingredients-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ingredient-tag {
+  padding: 8px 16px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+}
+
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -452,6 +529,23 @@ onActivated(async () => {
 
   .tutorial-type {
     font-size: 11px;
+  }
+
+  .meta-tag {
+    padding: 6px 12px;
+  }
+
+  .meta-label {
+    font-size: 11px;
+  }
+
+  .meta-value {
+    font-size: 13px;
+  }
+
+  .ingredient-tag {
+    padding: 6px 12px;
+    font-size: 13px;
   }
 }
 </style>
