@@ -50,11 +50,11 @@
       </div>
     </main>
 
-    <div v-if="!isRandomizing && selectedDishes.length === 0" class="empty-tip">
-      <span class="tip-line"></span>
-      <span class="tip-text">点击按钮开始</span>
-      <span class="tip-line"></span>
-    </div>
+<!--    <div v-if="!isRandomizing && selectedDishes.length === 0" class="empty-tip">-->
+<!--      <span class="tip-line"></span>-->
+<!--      <span class="tip-text">点击按钮开始</span>-->
+<!--      <span class="tip-line"></span>-->
+<!--    </div>-->
 
     <button
         class="action-button"
