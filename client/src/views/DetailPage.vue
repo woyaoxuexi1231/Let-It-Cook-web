@@ -100,7 +100,7 @@ const dishDetail = ref(null)
 const parsedIngredients = computed(() => {
   if (!dishDetail.value || !dishDetail.value.ingredients) return []
   return dishDetail.value.ingredients
-    .split(/[,，;；]/)
+    .split(/[,，;；、]/)
     .map(s => s.trim())
     .filter(s => s)
 })

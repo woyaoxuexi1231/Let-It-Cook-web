@@ -27,34 +27,34 @@
                 @touchend="resetGlow($event)"
                 @click="goToDetail(dish.id, $event)"
             >
-              <span class="dish-number">{{ index + 1 }}</span>
-              <div class="dish-info">
-                <span class="dish-name">{{ dish.name }}</span>
-                <div class="dish-image" v-if="dish.image">
-                  <img :src="getFileUrl(dish.image)" :alt="dish.name"/>
+              <div class="dish-item-main">
+                <span class="dish-number">{{ index + 1 }}</span>
+                <div class="dish-info">
+                  <span class="dish-name">{{ dish.name }}</span>
+                  <div class="dish-image" v-if="dish.image">
+                    <img :src="getFileUrl(dish.image)" :alt="dish.name"/>
+                  </div>
                 </div>
               </div>
-              <div class="glow-effect"></div>
-            </div>
-            <div class="ingredients-section" v-if="allIngredients.length > 0">
-              <h3 class="ingredients-title">所需食材</h3>
-              <div class="ingredients-list">
+              <div class="dish-item-ingredients" v-if="dish.ingredients" @click.stop>
                 <span
-                    v-for="(ingredient, idx) in allIngredients"
+                    v-for="(ingredient, idx) in parseIngredients(dish.ingredients)"
                     :key="idx"
                     class="ingredient-tag"
                 >{{ ingredient }}</span>
               </div>
+              <div class="glow-effect"></div>
             </div>
-          </div>
-          <div v-else class="empty-tip">
-            <span class="tip-line"></span>
-            <span class="tip-text">点击按钮开始</span>
-            <span class="tip-line"></span>
           </div>
         </div>
       </div>
     </main>
+
+    <div v-if="!isRandomizing && selectedDishes.length === 0" class="empty-tip">
+      <span class="tip-line"></span>
+      <span class="tip-text">点击按钮开始</span>
+      <span class="tip-line"></span>
+    </div>
 
     <button
         class="action-button"
@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted, onUnmounted, nextTick} from 'vue'
+import {ref, onMounted, onUnmounted, nextTick} from 'vue'
 import {useRouter} from 'vue-router'
 import axios from 'axios'
 import {getFileUrl} from '@/utils/fileUrl'
@@ -89,16 +89,10 @@ const selectedDishes = ref([])
 const dishes = ref([])
 let randomInterval = null
 
-const allIngredients = computed(() => {
-  const ingredientsSet = new Set()
-  selectedDishes.value.forEach(dish => {
-    if (dish.ingredients) {
-      const parts = dish.ingredients.split(/[,，;；]/).map(s => s.trim()).filter(s => s)
-      parts.forEach(part => ingredientsSet.add(part))
-    }
-  })
-  return Array.from(ingredientsSet)
-})
+const parseIngredients = (ingredients) => {
+  if (!ingredients) return []
+  return ingredients.split(/[,，;；、]/).map(s => s.trim()).filter(s => s)
+}
 
 // 获取客户端真实IP
 const getClientIp = async () => {
@@ -260,9 +254,9 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
   padding: 20px;
-  padding-bottom: 120px; /* 为固定按钮留出空间 */
+  padding-bottom: 120px;
 }
 
 .bg-gradient {
@@ -342,9 +336,9 @@ onUnmounted(() => {
 
 .dish-item {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 24px 30px;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
@@ -361,6 +355,31 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.15);
   transform: translateX(8px);
+}
+
+.dish-item-main {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 30px;
+}
+
+.dish-item-ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 30px 20px 74px;
+}
+
+.dish-item-ingredients .ingredient-tag {
+  padding: 4px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  letter-spacing: 0.05em;
+  pointer-events: none;
 }
 
 .dish-number {
@@ -406,6 +425,14 @@ onUnmounted(() => {
 }
 
 .empty-tip {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 140px;
+  margin: 0 auto;
+  z-index: 10;
+  width: calc(100% - 40px);
+  max-width: 600px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -424,31 +451,6 @@ onUnmounted(() => {
   letter-spacing: 0.2em;
 }
 
-.ingredients-section {
-  margin-top: 30px;
-  padding: 20px 24px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
-  animation: dishSlideIn 0.5s ease-out forwards;
-  animation-delay: 0.3s;
-  opacity: 0;
-}
-
-.ingredients-title {
-  font-size: 16px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 16px 0;
-  letter-spacing: 0.15em;
-}
-
-.ingredients-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 .ingredient-tag {
   padding: 8px 16px;
   font-size: 14px;
@@ -460,20 +462,22 @@ onUnmounted(() => {
 }
 
 .action-button {
-  position: fixed; /* 固定定位 */
-  bottom: 60px; /* 距离底部60px */
+  position: fixed;
+  bottom: 60px;
   left: 0;
   right: 0;
-  margin: 0 auto; /* 水平居中 */
-  z-index: 10; /* 确保在其他内容之上 */
-  width: calc(100% - 40px); /* 宽度适应，左右各留20px */
-  max-width: 600px; /* 最大宽度 */
+  margin: 0 auto;
+  z-index: 10;
+  width: calc(100% - 40px);
+  max-width: 600px;
   padding: 20px 80px;
   font-size: 18px;
   font-weight: 300;
   letter-spacing: 0.4em;
   color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   cursor: pointer;
@@ -482,12 +486,12 @@ onUnmounted(() => {
 }
 
 .action-button:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(30, 30, 30, 0.8);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
 .action-button.active {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(30, 30, 30, 0.8);
   border-color: rgba(255, 255, 255, 0.25);
   animation: textPulse 1s ease-in-out infinite;
 }
@@ -520,9 +524,19 @@ onUnmounted(() => {
     font-size: 32px;
   }
 
-  .dish-item {
+  .dish-item-main {
     padding: 16px 20px;
     gap: 15px;
+  }
+
+  .dish-item-ingredients {
+    padding: 0 20px 14px 55px;
+    gap: 6px;
+  }
+
+  .dish-item-ingredients .ingredient-tag {
+    padding: 3px 10px;
+    font-size: 11px;
   }
 
   .dish-number {
@@ -542,14 +556,14 @@ onUnmounted(() => {
   .action-button {
     padding: 16px 50px;
     font-size: 16px;
-    width: calc(100% - 40px); /* 宽度适应，左右各留20px */
+    width: calc(100% - 40px);
   }
 }
 
 @media (max-width: 480px) {
   .app-container {
     padding: 10px;
-    padding-bottom: 100px; /* 为固定按钮留出空间 */
+    padding-bottom: 100px;
   }
 
   .main-content {
@@ -564,9 +578,19 @@ onUnmounted(() => {
     font-size: 26px;
   }
 
-  .dish-item {
+  .dish-item-main {
     padding: 12px 16px;
     gap: 12px;
+  }
+
+  .dish-item-ingredients {
+    padding: 0 16px 10px 48px;
+    gap: 4px;
+  }
+
+  .dish-item-ingredients .ingredient-tag {
+    padding: 2px 8px;
+    font-size: 10px;
   }
 
   .dish-name {
@@ -581,8 +605,13 @@ onUnmounted(() => {
   .action-button {
     padding: 14px 40px;
     font-size: 14px;
-    width: calc(100% - 20px); /* 宽度适应，左右各留10px */
-    bottom: 50px; /* 距离底部50px */
+    width: calc(100% - 20px);
+    bottom: 50px;
+  }
+
+  .empty-tip {
+    width: calc(100% - 20px);
+    bottom: 110px;
   }
 }
 
