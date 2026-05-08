@@ -22,7 +22,10 @@
               }"
                 @mousemove="handleMouseMove($event)"
                 @mouseleave="resetGlow($event)"
-                @click="goToDetail(dish.id)"
+                @touchstart="handleTouchMove($event)"
+                @touchmove="handleTouchMove($event)"
+                @touchend="resetGlow($event)"
+                @click="goToDetail(dish.id, $event)"
             >
               <span class="dish-number">{{ index + 1 }}</span>
               <div class="dish-info">
@@ -46,9 +49,12 @@
     <button
         class="action-button"
         :class="{ 'active': isRandomizing }"
-        @click="toggleRandom"
+        @click="toggleRandom($event)"
         @mousemove="handleMouseMove($event)"
         @mouseleave="resetGlow($event)"
+        @touchstart="handleTouchMove($event)"
+        @touchmove="handleTouchMove($event)"
+        @touchend="resetGlow($event)"
     >
       <span class="button-inner">{{ isRandomizing ? '停止' : '开始' }}</span>
       <div class="button-glow"></div>
@@ -145,7 +151,12 @@ const fetchRandomDishes = async (count = 3) => {
   }
 }
 
-const toggleRandom = () => {
+const toggleRandom = (event) => {
+  // 点击时手动重置光影
+  if (event && event.currentTarget) {
+    resetGlow(event)
+  }
+
   if (isRandomizing.value) {
     clearInterval(randomInterval)
     isRandomizing.value = false
@@ -170,22 +181,35 @@ const startRandom = () => {
   }, 80)
 }
 
-const goToDetail = (id) => {
+const goToDetail = (id, event) => {
+  // 点击时手动重置光影
+  if (event && event.currentTarget) {
+    resetGlow(event)
+  }
   router.push(`/detail/${id}`)
 }
 
-const handleMouseMove = (event) => {
-  const element = event.currentTarget
+const updateGlow = (element, clientX, clientY) => {
   const rect = element.getBoundingClientRect()
-  const x = ((event.clientX - rect.left) / rect.width) * 100
-  const y = ((event.clientY - rect.top) / rect.height) * 100
+  const x = ((clientX - rect.left) / rect.width) * 100
+  const y = ((clientY - rect.top) / rect.height) * 100
 
   const glowElement = element.querySelector('.glow-effect, .button-glow')
   if (glowElement) {
     glowElement.style.background = `radial-gradient(circle at ${x}% ${y}%, rgba(255,255,255,0.15) 0%, transparent 50%)`
   }
+}
 
-  element.style.transform = 'scale(1.02)'
+const handleMouseMove = (event) => {
+  updateGlow(event.currentTarget, event.clientX, event.clientY)
+  event.currentTarget.style.transform = 'scale(1.02)'
+}
+
+const handleTouchMove = (event) => {
+  // 触摸时也触发光影，并轻微放大
+  const touch = event.touches[0]
+  updateGlow(event.currentTarget, touch.clientX, touch.clientY)
+  event.currentTarget.style.transform = 'scale(1.02)'
 }
 
 const resetGlow = (event) => {
@@ -381,7 +405,7 @@ onUnmounted(() => {
 
 .action-button {
   position: fixed; /* 固定定位 */
-  bottom: 20px; /* 距离底部20px */
+  bottom: 60px; /* 距离底部60px */
   left: 0;
   right: 0;
   margin: 0 auto; /* 水平居中 */
@@ -502,7 +526,7 @@ onUnmounted(() => {
     padding: 14px 40px;
     font-size: 14px;
     width: calc(100% - 20px); /* 宽度适应，左右各留10px */
-    bottom: 10px; /* 距离底部10px */
+    bottom: 50px; /* 距离底部50px */
   }
 }
 
