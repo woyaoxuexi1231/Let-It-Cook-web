@@ -36,7 +36,7 @@
                   </div>
                 </div>
               </div>
-              <div class="dish-item-ingredients" v-if="dish.ingredients" @click.stop>
+              <div class="dish-item-ingredients" v-if="dish.ingredients">
                 <span
                     v-for="(ingredient, idx) in parseIngredients(dish.ingredients)"
                     :key="idx"
@@ -252,15 +252,15 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
-  overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
   padding-bottom: 120px;
 }
 
 .bg-gradient {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: radial-gradient(ellipse at 20% 20%, rgba(60, 60, 60, 0.4) 0%, transparent 50%),
   radial-gradient(ellipse at 80% 80%, rgba(40, 40, 40, 0.3) 0%, transparent 50%),
@@ -268,7 +268,7 @@ onUnmounted(() => {
 }
 
 .bg-circle {
-  position: absolute;
+  position: fixed;
   border-radius: 50%;
   filter: blur(80px);
   animation: float 8s ease-in-out infinite;
@@ -298,8 +298,9 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-grow: 1; /* 弹性填充剩余空间 */
+  flex-grow: 1;
   width: 100%;
+  max-width: 100%;
   gap: 50px;
   animation: fadeInUp 1s ease-out;
 }
@@ -326,12 +327,14 @@ onUnmounted(() => {
 
 .result-area {
   width: 100%;
+  max-width: 100%;
 }
 
 .dishes-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
 }
 
 .dish-item {
@@ -362,6 +365,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 20px;
   padding: 24px 30px;
+  min-width: 0;
 }
 
 .dish-item-ingredients {
@@ -369,6 +373,7 @@ onUnmounted(() => {
   flex-wrap: wrap;
   gap: 8px;
   padding: 0 30px 20px 74px;
+  min-width: 0;
 }
 
 .dish-item-ingredients .ingredient-tag {
