@@ -41,18 +41,18 @@
           </div>
         </div>
       </div>
-
-      <button
-          class="action-button"
-          :class="{ 'active': isRandomizing }"
-          @click="toggleRandom"
-          @mousemove="handleMouseMove($event)"
-          @mouseleave="resetGlow($event)"
-      >
-        <span class="button-inner">{{ isRandomizing ? '停止' : '开始' }}</span>
-        <div class="button-glow"></div>
-      </button>
     </main>
+
+    <button
+        class="action-button"
+        :class="{ 'active': isRandomizing }"
+        @click="toggleRandom"
+        @mousemove="handleMouseMove($event)"
+        @mouseleave="resetGlow($event)"
+    >
+      <span class="button-inner">{{ isRandomizing ? '停止' : '开始' }}</span>
+      <div class="button-glow"></div>
+    </button>
   </div>
 </template>
 
@@ -211,11 +211,13 @@ onUnmounted(() => {
 .app-container {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
   padding: 20px;
+  padding-bottom: 120px; /* 为固定按钮留出空间 */
 }
 
 .bg-gradient {
@@ -257,7 +259,8 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  flex-grow: 1; /* 弹性填充剩余空间 */
+  width: 100%;
   gap: 50px;
   animation: fadeInUp 1s ease-out;
 }
@@ -377,7 +380,14 @@ onUnmounted(() => {
 }
 
 .action-button {
-  position: relative;
+  position: fixed; /* 固定定位 */
+  bottom: 20px; /* 距离底部20px */
+  left: 0;
+  right: 0;
+  margin: 0 auto; /* 水平居中 */
+  z-index: 10; /* 确保在其他内容之上 */
+  width: calc(100% - 40px); /* 宽度适应，左右各留20px */
+  max-width: 600px; /* 最大宽度 */
   padding: 20px 80px;
   font-size: 18px;
   font-weight: 300;
@@ -452,13 +462,14 @@ onUnmounted(() => {
   .action-button {
     padding: 16px 50px;
     font-size: 16px;
-    width: 90%;
+    width: calc(100% - 40px); /* 宽度适应，左右各留20px */
   }
 }
 
 @media (max-width: 480px) {
   .app-container {
     padding: 10px;
+    padding-bottom: 100px; /* 为固定按钮留出空间 */
   }
 
   .main-content {
@@ -490,7 +501,8 @@ onUnmounted(() => {
   .action-button {
     padding: 14px 40px;
     font-size: 14px;
-    width: 100%;
+    width: calc(100% - 20px); /* 宽度适应，左右各留10px */
+    bottom: 10px; /* 距离底部10px */
   }
 }
 
@@ -535,4 +547,5 @@ onUnmounted(() => {
     transform: translateY(-8px);
   }
 }
+
 </style>
