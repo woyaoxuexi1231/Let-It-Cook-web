@@ -256,7 +256,7 @@ onUnmounted(() => {
   position: relative;
   overflow-x: hidden;
   padding: 20px;
-  padding-bottom: 120px;
+  padding-bottom: 180px;
 }
 
 .bg-gradient {
