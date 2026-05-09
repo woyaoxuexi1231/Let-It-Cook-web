@@ -6,21 +6,110 @@ const API_BASE_URL = '/api/let-it-cook/api'
 // 存储客户端真实IP
 let clientIP = ''
 
-// 获取客户端真实IP（通过第三方API）
+// 备选IP查询API列表（按优先级分组，并发查询）
+const IP_API_LIST = [
+  // 第一组：优先尝试（JSON格式，响应较快）
+  { url: 'https://api.ipify.org?format=json', type: 'json', extract: 'ip', group: 1 },
+  { url: 'https://api64.ipify.org?format=json', type: 'json', extract: 'ip', group: 1 },
+  // 第二组：备用（JSON格式）
+  { url: 'https://ip.seeip.org/json', type: 'json', extract: 'ip', group: 2 },
+  { url: 'https://api.my-ip.io/v2/ip', type: 'json', extract: 'ip', group: 2 },
+  // 第三组：降级（纯文本格式）
+  { url: 'https://api.ipify.org', type: 'text', group: 3 },
+  { url: 'https://icanhazip.com', type: 'text', group: 3 },
+  { url: 'https://ifconfig.me/ip', type: 'text', group: 3 },
+  { url: 'https://ifconfig.io/ip', type: 'text', group: 3 }
+]
+
+// 获取客户端真实IP（多线程并发查询，任一成功即返回）
 async function fetchClientIP() {
   if (clientIP) return clientIP
   
-  try {
-    const response = await fetch('https://api.ipify.org?format=json')
-    const data = await response.json()
-    clientIP = data.ip || ''
-    console.log('🌐 客户端真实IP:', clientIP)
-  } catch (error) {
-    console.warn('⚠️ 获取客户端IP失败:', error)
-    clientIP = ''
+  console.log('🔍 开始并发查询客户端IP...')
+  
+  // 创建单个API请求（带超时）
+  const createRequest = (api) => {
+    return new Promise((resolve) => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => {
+        controller.abort()
+        resolve({ success: false, api: api.url, error: 'timeout' })
+      }, 5000) // 5秒超时
+      
+      fetch(api.url, { 
+        signal: controller.signal,
+        headers: { 'Accept': 'application/json, text/plain' },
+        cache: 'no-cache'
+      })
+      .then(async (response) => {
+        clearTimeout(timeout)
+        if (!response.ok) {
+          resolve({ success: false, api: api.url, error: `HTTP ${response.status}` })
+          return
+        }
+        
+        let ip = ''
+        try {
+          if (api.type === 'json') {
+            const data = await response.json()
+            ip = data[api.extract] || ''
+          } else {
+            ip = await response.text()
+            ip = ip.trim()
+          }
+          
+          if (isValidIP(ip)) {
+            resolve({ success: true, ip: ip, api: api.url })
+          } else {
+            resolve({ success: false, api: api.url, error: 'invalid IP format' })
+          }
+        } catch (e) {
+          resolve({ success: false, api: api.url, error: e.message })
+        }
+      })
+      .catch((error) => {
+        clearTimeout(timeout)
+        resolve({ success: false, api: api.url, error: error.message })
+      })
+    })
   }
   
+  // 分阶段并发查询：先查第一组，再查第二组，最后查第三组
+  const groups = [1, 2, 3]
+  for (const group of groups) {
+    const groupApis = IP_API_LIST.filter(api => api.group === group)
+    console.log(`📡 第${group}组并发查询: ${groupApis.length}个API`)
+    
+    // 并发执行当前组的所有API
+    const results = await Promise.allSettled(groupApis.map(createRequest))
+    
+    // 检查是否有成功的结果
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value.success) {
+        clientIP = result.value.ip
+        console.log(`✅ 成功获取客户端IP (${result.value.api}): ${clientIP}`)
+        return clientIP
+      }
+    }
+    
+    // 当前组全部失败，输出日志并尝试下一组
+    console.log(`⚠️ 第${group}组全部失败，尝试下一组...`)
+  }
+  
+  console.warn('❌ 所有IP查询API都失败了')
+  clientIP = ''
   return clientIP
+}
+
+// 简单验证IP地址格式
+function isValidIP(ip) {
+  if (!ip || typeof ip !== 'string') return false
+  ip = ip.trim()
+  // IPv4验证
+  const ipv4Pattern = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+  // IPv6简单验证
+  const ipv6Pattern = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::$/
+  return ipv4Pattern.test(ip) || ipv6Pattern.test(ip)
 }
 
 const apiClient = axios.create({
@@ -34,8 +123,10 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   async config => {
     // 获取客户端真实IP并添加到请求头
+    // 使用自定义头 X-Custom-Real-IP 避免被内网穿透拦截
     const ip = await fetchClientIP()
     if (ip) {
+      config.headers['X-Custom-Real-IP'] = ip
       config.headers['X-Real-IP'] = ip
       config.headers['X-Client-IP'] = ip
     }
@@ -110,11 +201,13 @@ export const uploadAPI = {
     console.log('🎯 实际转发到:', realUrl)
     
     // 获取客户端真实IP并添加到请求头
+    // 使用自定义头 X-Custom-Real-IP 避免被内网穿透拦截
     const ip = await fetchClientIP()
     const headers = {
       'Content-Type': 'multipart/form-data'
     }
     if (ip) {
+      headers['X-Custom-Real-IP'] = ip
       headers['X-Real-IP'] = ip
       headers['X-Client-IP'] = ip
     }
