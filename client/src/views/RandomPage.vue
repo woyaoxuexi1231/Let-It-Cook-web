@@ -75,9 +75,8 @@
 <script setup>
 import {ref, onMounted, onUnmounted, nextTick} from 'vue'
 import {useRouter} from 'vue-router'
-import axios from 'axios'
 import {getFileUrl} from '@/utils/fileUrl'
-import {getProxyTarget} from '@/utils/proxyUrl'
+import {apiPost} from '@/api'
 
 const router = useRouter()
 const containerRef = ref(null)
@@ -94,29 +93,9 @@ const parseIngredients = (ingredients) => {
   return ingredients.split(/[,，;；、]/).map(s => s.trim()).filter(s => s)
 }
 
-// 获取客户端真实IP
-const getClientIp = async () => {
-
-  // 备用方案
-  try {
-    const response = await axios.get('https://ipinfo.io/json')
-    return response.data.ip
-  } catch (err) {
-    console.error('备用IP获取失败:', err)
-    return 'unknown'
-  }
-
-}
-
 const fetchDishes = async () => {
   try {
-    const url = '/api/let-it-cook/api/client/dishes/list'
-    const fullUrl = window.location.origin + url
-    const proxyTarget = getProxyTarget()
-    const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
-    console.log('🚀 前端访问:', fullUrl)
-    console.log('🎯 实际转发到:', realUrl)
-    const response = await axios.post(url)
+    const response = await apiPost('/api/let-it-cook/api/client/dishes/list')
     dishes.value = response.data.data || []
   } catch (error) {
     console.error('获取菜谱失败:', error)
@@ -132,15 +111,7 @@ const fetchDishes = async () => {
 
 const fetchLastResult = async () => {
   try {
-    const clientIp = await getClientIp()
-    const url = '/api/let-it-cook/api/client/dishes/last-result'
-    const fullUrl = window.location.origin + url
-    const proxyTarget = getProxyTarget()
-    const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
-    console.log('🚀 前端访问:', fullUrl)
-    console.log('🎯 实际转发到:', realUrl)
-    console.log('📡 客户端IP:', clientIp)
-    const response = await axios.post(url, {clientIp})
+    const response = await apiPost('/api/let-it-cook/api/client/dishes/last-result', {})
     selectedDishes.value = response.data.data || []
   } catch (error) {
     console.error('查询上次结果失败:', error)
@@ -149,15 +120,7 @@ const fetchLastResult = async () => {
 
 const fetchRandomDishes = async (count = 3) => {
   try {
-    const clientIp = await getClientIp()
-    const url = '/api/let-it-cook/api/client/dishes/random'
-    const fullUrl = window.location.origin + url
-    const proxyTarget = getProxyTarget()
-    const realUrl = proxyTarget ? proxyTarget + url.replace(/^\/api/, '') : fullUrl
-    console.log('🚀 前端访问:', fullUrl)
-    console.log('🎯 实际转发到:', realUrl)
-    console.log('📡 客户端IP:', clientIp)
-    const response = await axios.post(url, {count, clientIp})
+    const response = await apiPost('/api/let-it-cook/api/client/dishes/random', {count})
     selectedDishes.value = response.data.data || []
   } catch (error) {
     console.error('获取随机菜谱失败:', error)
